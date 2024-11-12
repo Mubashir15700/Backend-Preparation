@@ -19,8 +19,8 @@ import {
   Data,
   HelloByIdResponse,
 } from 'src/modules/hello/interfaces';
-import { AuthGuard } from '../auth/guards/auth.guard';
-import { LogGuard } from '../auth/guards/log.guard';
+import { AuthGuard } from '../../guards/auth.guard';
+import { LogGuard } from '../../guards/log.guard';
 import { Log } from 'src/custom-decorators/log.decorator';
 import { LoggingInterceptor } from 'src/interceptors/logging.interceptor';
 

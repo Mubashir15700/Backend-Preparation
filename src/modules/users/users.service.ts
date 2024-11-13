@@ -1,22 +1,17 @@
 import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { User } from './entitities/user.entity';
+import { PrismaService } from '../../../prisma/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { HttpException, HttpStatus } from '@nestjs/common';
 
 @Injectable()
 export class UsersService {
-  constructor(
-    @InjectRepository(User)
-    private readonly userRepository: Repository<User>,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {} // Inject PrismaService
 
-  async create(createUserDto: CreateUserDto): Promise<User> {
+  async create(createUserDto: CreateUserDto) {
     try {
-      const user = this.userRepository.create(createUserDto);
-      return await this.userRepository.save(user);
+      const user = await this.prisma.user.create({ data: createUserDto });
+      return user;
     } catch (error) {
       throw new HttpException(
         'Failed to create user. Please try again later.',
@@ -25,9 +20,9 @@ export class UsersService {
     }
   }
 
-  async findAll(): Promise<User[]> {
+  async findAll() {
     try {
-      return await this.userRepository.find();
+      return await this.prisma.user.findMany();
     } catch (error) {
       throw new HttpException(
         `Failed to retrieve users. Error: ${error.message}`,
@@ -36,9 +31,9 @@ export class UsersService {
     }
   }
 
-  async findOne(id: number): Promise<User> {
+  async findOne(id: number) {
     try {
-      const user = await this.userRepository.findOne({ where: { id } });
+      const user = await this.prisma.user.findUnique({ where: { id } });
       if (!user) {
         throw new HttpException('User not found', HttpStatus.NOT_FOUND);
       }
@@ -51,14 +46,16 @@ export class UsersService {
     }
   }
 
-  async update(id: number, updateUserDto: UpdateUserDto): Promise<User> {
+  async update(id: number, updateUserDto: UpdateUserDto) {
     try {
-      const existingUser = await this.userRepository.findOne({ where: { id } });
+      const existingUser = await this.prisma.user.findUnique({ where: { id } });
       if (!existingUser) {
         throw new HttpException('User not found', HttpStatus.NOT_FOUND);
       }
-      await this.userRepository.update(id, updateUserDto);
-      return this.findOne(id); // Return updated user
+      return await this.prisma.user.update({
+        where: { id },
+        data: updateUserDto,
+      });
     } catch (error) {
       throw new HttpException(
         error.message || 'Failed to update user.',
@@ -67,13 +64,13 @@ export class UsersService {
     }
   }
 
-  async remove(id: number): Promise<void> {
+  async remove(id: number) {
     try {
-      const user = await this.userRepository.findOne({ where: { id } });
+      const user = await this.prisma.user.findUnique({ where: { id } });
       if (!user) {
         throw new HttpException('User not found', HttpStatus.NOT_FOUND);
       }
-      await this.userRepository.delete(id);
+      await this.prisma.user.delete({ where: { id } });
     } catch (error) {
       throw new HttpException(
         error.message || 'Failed to delete user.',

@@ -1,22 +1,17 @@
 import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Post } from './entitities/post.entity';
+import { PrismaService } from '../../../prisma/prisma.service';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
 import { HttpException, HttpStatus } from '@nestjs/common';
 
 @Injectable()
 export class PostsService {
-  constructor(
-    @InjectRepository(Post)
-    private readonly postRepository: Repository<Post>,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {} // Inject PrismaService
 
-  async create(createPostDto: CreatePostDto): Promise<Post> {
+  async create(createPostDto: CreatePostDto) {
     try {
-      const post = this.postRepository.create(createPostDto);
-      return await this.postRepository.save(post);
+      const post = await this.prisma.post.create({ data: createPostDto });
+      return post;
     } catch (error) {
       throw new HttpException(
         `Failed to create post. Error: ${error.message}`,
@@ -25,9 +20,9 @@ export class PostsService {
     }
   }
 
-  async findAll(): Promise<Post[]> {
+  async findAll() {
     try {
-      return await this.postRepository.find();
+      return await this.prisma.post.findMany();
     } catch (error) {
       throw new HttpException(
         `Failed to retrieve posts. Error: ${error.message}`,
@@ -36,9 +31,9 @@ export class PostsService {
     }
   }
 
-  async findOne(id: number): Promise<Post> {
+  async findOne(id: number) {
     try {
-      const post = await this.postRepository.findOne({ where: { id } });
+      const post = await this.prisma.post.findUnique({ where: { id } });
       if (!post) {
         throw new HttpException('Post not found', HttpStatus.NOT_FOUND);
       }
@@ -51,13 +46,16 @@ export class PostsService {
     }
   }
 
-  async update(id: number, updatePostDto: UpdatePostDto): Promise<Post> {
+  async update(id: number, updatePostDto: UpdatePostDto) {
     try {
-      const post = await this.postRepository.findOne({ where: { id } });
+      const post = await this.prisma.post.findUnique({ where: { id } });
       if (!post) {
         throw new HttpException('Post not found', HttpStatus.NOT_FOUND);
       }
-      await this.postRepository.update(id, updatePostDto);
+      await this.prisma.post.update({
+        where: { id },
+        data: updatePostDto,
+      });
       return this.findOne(id);
     } catch (error) {
       throw new HttpException(
@@ -67,13 +65,13 @@ export class PostsService {
     }
   }
 
-  async remove(id: number): Promise<void> {
+  async remove(id: number) {
     try {
-      const post = await this.postRepository.findOne({ where: { id } });
+      const post = await this.prisma.post.findUnique({ where: { id } });
       if (!post) {
         throw new HttpException('Post not found', HttpStatus.NOT_FOUND);
       }
-      await this.postRepository.delete(id);
+      await this.prisma.post.delete({ where: { id } });
     } catch (error) {
       throw new HttpException(
         `Failed to delete post. Error: ${error.message}`,

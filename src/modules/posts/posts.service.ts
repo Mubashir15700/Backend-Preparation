@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { Post } from './entitities/post.entity';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
+import { HttpException, HttpStatus } from '@nestjs/common';
 
 @Injectable()
 export class PostsService {
@@ -12,25 +13,72 @@ export class PostsService {
     private readonly postRepository: Repository<Post>,
   ) {}
 
-  create(createPostDto: CreatePostDto): Promise<Post> {
-    const post = this.postRepository.create(createPostDto);
-    return this.postRepository.save(post);
+  async create(createPostDto: CreatePostDto): Promise<Post> {
+    try {
+      const post = this.postRepository.create(createPostDto);
+      return await this.postRepository.save(post);
+    } catch (error) {
+      throw new HttpException(
+        `Failed to create post. Error: ${error.message}`,
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 
-  findAll(): Promise<Post[]> {
-    return this.postRepository.find();
+  async findAll(): Promise<Post[]> {
+    try {
+      return await this.postRepository.find();
+    } catch (error) {
+      throw new HttpException(
+        `Failed to retrieve posts. Error: ${error.message}`,
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 
-  findOne(id: number): Promise<Post> {
-    return this.postRepository.findOne({ where: { id } });
+  async findOne(id: number): Promise<Post> {
+    try {
+      const post = await this.postRepository.findOne({ where: { id } });
+      if (!post) {
+        throw new HttpException('Post not found', HttpStatus.NOT_FOUND);
+      }
+      return post;
+    } catch (error) {
+      throw new HttpException(
+        `Failed to retrieve post. Error: ${error.message}`,
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 
   async update(id: number, updatePostDto: UpdatePostDto): Promise<Post> {
-    await this.postRepository.update(id, updatePostDto);
-    return this.findOne(id);
+    try {
+      const post = await this.postRepository.findOne({ where: { id } });
+      if (!post) {
+        throw new HttpException('Post not found', HttpStatus.NOT_FOUND);
+      }
+      await this.postRepository.update(id, updatePostDto);
+      return this.findOne(id);
+    } catch (error) {
+      throw new HttpException(
+        `Failed to update post. Error: ${error.message}`,
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 
   async remove(id: number): Promise<void> {
-    await this.postRepository.delete(id);
+    try {
+      const post = await this.postRepository.findOne({ where: { id } });
+      if (!post) {
+        throw new HttpException('Post not found', HttpStatus.NOT_FOUND);
+      }
+      await this.postRepository.delete(id);
+    } catch (error) {
+      throw new HttpException(
+        `Failed to delete post. Error: ${error.message}`,
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 }

@@ -18,9 +18,11 @@ import { Post } from '../posts/entitities/post.entity';
 
 @Module({
   imports: [
+    // Load environment variables
     ConfigModule.forRoot({
       isGlobal: true,
     }),
+    // Configure TypeORM with environment variables
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -35,6 +37,7 @@ import { Post } from '../posts/entitities/post.entity';
         synchronize: true, // Avoid in production
       }),
     }),
+    // Import feature modules
     HelloModule,
     WorldModule,
     UsersModule,

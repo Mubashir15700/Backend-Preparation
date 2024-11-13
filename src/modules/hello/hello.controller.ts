@@ -11,7 +11,6 @@ import {
   Post,
   Put,
   UseGuards,
-  UseInterceptors,
 } from '@nestjs/common';
 import { HelloService } from './hello.service';
 import {
@@ -19,14 +18,10 @@ import {
   Data,
   HelloByIdResponse,
 } from 'src/modules/hello/interfaces';
-import { AuthGuard } from '../../guards/auth.guard';
 import { LogGuard } from '../../guards/log.guard';
 import { Log } from 'src/custom-decorators/log.decorator';
-import { LoggingInterceptor } from 'src/interceptors/logging.interceptor';
 
 @Controller('hello')
-@UseGuards(AuthGuard)
-@UseInterceptors(LoggingInterceptor)
 export class HelloController {
   constructor(private readonly helloService: HelloService) {}
 

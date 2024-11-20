@@ -134,7 +134,7 @@ export class UsersService {
     });
   }
 
-  // Raw SQL query to get users with post titles containing 'new'
+  // Raw SQL query to get users with post contents containing 'new'
   async findUsersWithPostsContainingNew() {
     try {
       const result = await this.prisma.$queryRaw`

@@ -85,10 +85,9 @@ export class UsersController {
     return this.usersService.createUserWithPost(userDto, postTitle);
   }
 
-  // Get users and their posts with 'new' in the title
+  // Get users and their posts with 'new' in the content
   @Get('raw/posts-with-new')
-  async getUsersWithPostsContainingNew() {
-    const result = await this.usersService.findUsersWithPostsContainingNew();
-    return result;
+  getUsersWithPostsContainingNew() {
+    return this.usersService.findUsersWithPostsContainingNew();
   }
 }

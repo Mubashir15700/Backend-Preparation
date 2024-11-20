@@ -22,7 +22,7 @@ export class PostsService {
 
   async findAll() {
     try {
-      return await this.prisma.post.findMany();
+      return await this.prisma.post.findMany({ include: { user: true } });
     } catch (error) {
       throw new HttpException(
         `Failed to retrieve posts. Error: ${error.message}`,
@@ -33,15 +33,18 @@ export class PostsService {
 
   async findOne(id: number) {
     try {
-      const post = await this.prisma.post.findUnique({ where: { id } });
+      const post = await this.prisma.post.findUnique({
+        where: { id },
+        include: { user: true },
+      });
       if (!post) {
         throw new HttpException('Post not found', HttpStatus.NOT_FOUND);
       }
       return post;
     } catch (error) {
       throw new HttpException(
-        `Failed to retrieve post. Error: ${error.message}`,
-        HttpStatus.INTERNAL_SERVER_ERROR,
+        error.message || `Failed to retrieve post. Error: ${error.message}`,
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
@@ -59,8 +62,8 @@ export class PostsService {
       return this.findOne(id);
     } catch (error) {
       throw new HttpException(
-        `Failed to update post. Error: ${error.message}`,
-        HttpStatus.INTERNAL_SERVER_ERROR,
+        error.message || `Failed to update post. Error: ${error.message}`,
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
@@ -72,10 +75,11 @@ export class PostsService {
         throw new HttpException('Post not found', HttpStatus.NOT_FOUND);
       }
       await this.prisma.post.delete({ where: { id } });
+      return { message: 'Post successfully deleted.' };
     } catch (error) {
       throw new HttpException(
-        `Failed to delete post. Error: ${error.message}`,
-        HttpStatus.INTERNAL_SERVER_ERROR,
+        error.message || `Failed to delete post. Error: ${error.message}`,
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }

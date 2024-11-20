@@ -5,6 +5,7 @@ import {
   RequestMethod,
 } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { ScheduleModule } from '@nestjs/schedule';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { HelloModule } from '../hello/hello.module';
@@ -27,6 +28,7 @@ import { PrismaService } from '../../../prisma/prisma.service';
     WorldModule,
     UsersModule,
     PostsModule,
+    ScheduleModule.forRoot(),
   ],
   controllers: [AppController],
   providers: [

@@ -22,7 +22,7 @@ export class UsersService {
 
   async findAll() {
     try {
-      return await this.prisma.user.findMany();
+      return await this.prisma.user.findMany({ include: { posts: true } });
     } catch (error) {
       throw new HttpException(
         `Failed to retrieve users. Error: ${error.message}`,
@@ -33,7 +33,10 @@ export class UsersService {
 
   async findOne(id: number) {
     try {
-      const user = await this.prisma.user.findUnique({ where: { id } });
+      const user = await this.prisma.user.findUnique({
+        where: { id },
+        include: { posts: true },
+      });
       if (!user) {
         throw new HttpException('User not found', HttpStatus.NOT_FOUND);
       }

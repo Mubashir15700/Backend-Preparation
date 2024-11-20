@@ -10,7 +10,7 @@ export class LogGuard implements CanActivate {
     const shouldLog = this.reflector.get<boolean>('log', context.getHandler());
 
     if (shouldLog) {
-      console.log('Logging request at:', new Date().toISOString());
+      console.log('Guard: Logging request at:', new Date().toISOString());
     }
 
     return true;

@@ -8,13 +8,13 @@ export class PrismaService
 {
   async onModuleInit() {
     await this.$connect()
-      .then(() => console.log('connected to prisma'))
+      .then(() => console.log('PrismaClient: connected to prisma'))
       .catch(console.error);
   }
 
   async onModuleDestroy() {
     await this.$disconnect()
-      .then(() => console.log('disconnected from prisma'))
+      .then(() => console.log('PrismaClient: disconnected from prisma'))
       .catch(console.error);
   }
 }

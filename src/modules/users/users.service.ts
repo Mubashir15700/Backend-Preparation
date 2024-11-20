@@ -22,7 +22,7 @@ export class UsersService {
 
   async findAll() {
     try {
-      return await this.prisma.user.findMany({ include: { posts: true } });
+      return await this.prisma.user.findMany();
     } catch (error) {
       throw new HttpException(
         `Failed to retrieve users. Error: ${error.message}`,
@@ -35,7 +35,6 @@ export class UsersService {
     try {
       const user = await this.prisma.user.findUnique({
         where: { id },
-        include: { posts: true },
       });
       if (!user) {
         throw new HttpException('User not found', HttpStatus.NOT_FOUND);
@@ -80,6 +79,73 @@ export class UsersService {
         error.message || 'Failed to delete user.',
         error.status || HttpStatus.INTERNAL_SERVER_ERROR,
       );
+    }
+  }
+
+  // Joins
+  async findUsersWithPosts() {
+    return this.prisma.user.findMany({
+      include: {
+        posts: true,
+      },
+    });
+  }
+
+  // Unions
+  async findUsersAndPosts() {
+    const users = await this.prisma.user.findMany();
+    const posts = await this.prisma.post.findMany();
+    return { users, posts };
+  }
+
+  // Intersections
+  async findUsersWithSpecificPosts(title: string) {
+    return this.prisma.user.findMany({
+      where: {
+        posts: {
+          some: {
+            title: { contains: title },
+          },
+        },
+      },
+      include: { posts: true },
+    });
+  }
+
+  // Aggregations
+  async aggregatePosts() {
+    return this.prisma.post.aggregate({
+      _count: true,
+      _avg: { id: true },
+      _sum: { id: true },
+      _min: { id: true },
+      _max: { id: true },
+    });
+  }
+
+  // Transactions
+  async createUserWithPost(userDto: CreateUserDto, postTitle: string) {
+    return this.prisma.$transaction(async (tx) => {
+      const user = await tx.user.create({ data: userDto });
+      const post = await tx.post.create({
+        data: { title: postTitle, content: 'Initial Post', userId: user.id },
+      });
+      return { user, post };
+    });
+  }
+
+  // Raw SQL query to get users with post titles containing 'new'
+  async findUsersWithPostsContainingNew() {
+    try {
+      const result = await this.prisma.$queryRaw`
+        SELECT users.username, posts.title, posts.content
+        FROM User users
+        JOIN Post posts ON users.id = posts.userId
+        WHERE posts.content LIKE '%new%'
+      `;
+      return result;
+    } catch (error) {
+      throw new Error('Error executing query');
     }
   }
 }

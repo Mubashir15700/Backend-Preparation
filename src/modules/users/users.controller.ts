@@ -9,6 +9,7 @@ import {
   UseGuards,
   UseInterceptors,
   ParseIntPipe,
+  Query,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -22,6 +23,7 @@ import { LoggingInterceptor } from 'src/interceptors/logging.interceptor';
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
+  // CRUD Operations
   @Post()
   create(@Body() createUserDto: CreateUserDto) {
     return this.usersService.create(createUserDto);
@@ -48,5 +50,45 @@ export class UsersController {
   @Delete(':id')
   remove(@Param('id', ParseIntPipe) id: number) {
     return this.usersService.remove(id);
+  }
+
+  // Joins
+  @Get('joins/with-posts')
+  findUsersWithPosts() {
+    return this.usersService.findUsersWithPosts();
+  }
+
+  // Unions
+  @Get('unions/users-and-posts')
+  findUsersAndPosts() {
+    return this.usersService.findUsersAndPosts();
+  }
+
+  // Intersections
+  @Get('intersections/with-posts')
+  findUsersWithSpecificPosts(@Query('title') title: string) {
+    return this.usersService.findUsersWithSpecificPosts(title);
+  }
+
+  // Aggregations
+  @Get('aggregations/posts-aggregate')
+  aggregatePosts() {
+    return this.usersService.aggregatePosts();
+  }
+
+  // Transactions
+  @Post('transactions/with-post')
+  createUserWithPost(
+    @Body('user') userDto: CreateUserDto,
+    @Body('postTitle') postTitle: string,
+  ) {
+    return this.usersService.createUserWithPost(userDto, postTitle);
+  }
+
+  // Get users and their posts with 'new' in the title
+  @Get('raw/posts-with-new')
+  async getUsersWithPostsContainingNew() {
+    const result = await this.usersService.findUsersWithPostsContainingNew();
+    return result;
   }
 }
